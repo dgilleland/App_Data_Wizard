@@ -1,0 +1,49 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{862F50B2-613C-4188-A712-0E76D93B0E1D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{A001E0FF-98BB-4D07-A70A-7E7F485499BD}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "about", "about", "{C6D1F478-79DF-40B3-967F-50ECA641E775}"
+	ProjectSection(SolutionItems) = preProject
+		LICENSE = LICENSE
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "Website", "src\Website\", "{5AF1CF9F-BBAF-4318-9CDE-D5D6BDB4849A}"
+	ProjectSection(WebsiteProperties) = preProject
+		TargetFrameworkMoniker = ".NETFramework,Version%3Dv4.0"
+		Debug.AspNetCompiler.VirtualPath = "/localhost_17765"
+		Debug.AspNetCompiler.PhysicalPath = "src\Website\"
+		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_17765\"
+		Debug.AspNetCompiler.Updateable = "true"
+		Debug.AspNetCompiler.ForceOverwrite = "true"
+		Debug.AspNetCompiler.FixedNames = "false"
+		Debug.AspNetCompiler.Debug = "True"
+		Release.AspNetCompiler.VirtualPath = "/localhost_17765"
+		Release.AspNetCompiler.PhysicalPath = "src\Website\"
+		Release.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_17765\"
+		Release.AspNetCompiler.Updateable = "true"
+		Release.AspNetCompiler.ForceOverwrite = "true"
+		Release.AspNetCompiler.FixedNames = "false"
+		Release.AspNetCompiler.Debug = "False"
+		VWDPort = "17775"
+		DefaultWebSiteLanguage = "Visual C#"
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5AF1CF9F-BBAF-4318-9CDE-D5D6BDB4849A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5AF1CF9F-BBAF-4318-9CDE-D5D6BDB4849A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{5AF1CF9F-BBAF-4318-9CDE-D5D6BDB4849A} = {862F50B2-613C-4188-A712-0E76D93B0E1D}
+	EndGlobalSection
+EndGlobal
