@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
@@ -13,37 +14,66 @@ using System.Web.UI.WebControls;
 
 public partial class App_Data_Wizard_DbScriptWizard : System.Web.UI.UserControl
 {
+    protected void InstallScripts_Click(object sender, EventArgs e)
+    {
+
+    }
+    protected void ReInstallScripts_Click(object sender, EventArgs e)
+    {
+
+    }
     protected void Page_Load(object sender, EventArgs e)
     {
         if (!IsPostBack)
         {
+            // Show available connection strings
             List<string> connections = new List<string>();
-            foreach(ConnectionStringSettings item in ConfigurationManager.ConnectionStrings)
+            foreach (ConnectionStringSettings item in ConfigurationManager.ConnectionStrings)
             {
                 if ("System.Data.SqlClient".Equals(item.ProviderName))
                     connections.Add(item.Name);
             }
             AvailableConnections.DataSource = connections;
             AvailableConnections.DataBind();
+
+            // Last run script
+            LastRunScript.Text = string.IsNullOrEmpty(SqlScriptLastExecuted)? "-no scripts run-" : SqlScriptLastExecuted;
+
+
+            // Available Script Files
+            var files = from item in FileNames
+                        select new
+                        {
+                            FileName = Path.GetFileName(item),
+                            Installed = Path.GetFileName(item).CompareTo(SqlScriptLastExecuted) <= 0
+                        };
+            ScriptFileGridView.EmptyDataText = "No SQL files available in " + SqlScriptFolder;
+            ScriptFileGridView.DataSource = files; //.OrderBy(each => each.FileName);
+            ScriptFileGridView.DataBind();
         }
     }
 
     #region Private Fields
+    private string SqlScriptLastExecuted { get { return ConfigurationManager.AppSettings["SqlScriptLastExecuted"]; } }
+    private const string DefaultScriptFolder = @"~\App_Data\";
+    private string SqlScriptFolder { get { return string.IsNullOrEmpty(ConfigurationManager.AppSettings["SqlScriptFolder"]) ? DefaultScriptFolder : ConfigurationManager.AppSettings["SqlScriptFolder"]; } }
+    private string SqlScriptNamingPattern { get { return ConfigurationManager.AppSettings["SqlScriptNamingPattern"]; } }
+    private Regex FilePattern { get { return new Regex(string.IsNullOrEmpty(SqlScriptNamingPattern) ? @".*.sql" : SqlScriptNamingPattern); } }
+    private List<string> FileNames { get { return Directory.GetFiles(Server.MapPath(SqlScriptFolder)).Where(file => FilePattern.IsMatch(file)).ToList<string>(); } }
+
     // Following line adapted from the DotNetNuke.Data.SqlDataProvider SqlDelimiterRegex property
     private static Regex SqlDelimiterRegex = new Regex(@"(?<=(?:[^\w]+|^))GO(?=(?: |\t)*?(?:\r?\n|$))", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Multiline);
 
-        /*
-        <add key="SqlScriptFolder"
-             value="~/App_Data/Scripts/Sql/"/>
-        <!--Script Naming Pattern. E.g.: 01.00.00.school.sql-->
-        <add key="SqlScriptNamingPattern"
-             value="\d{1,2}\.\d{1,2}\.\d{1,2}\..*.sql"/>
-        <add key="SqlScriptLastExecuted"
-             value=""/>
-         */
-    private string SqlScriptFolder { get { return ConfigurationManager.AppSettings["SqlScriptFolder"]; } }
-    private string SqlScriptNamingPattern { get { return ConfigurationManager.AppSettings["SqlScriptNamingPattern"]; } }
-    private string SqlScriptLastExecuted { get { return ConfigurationManager.AppSettings["SqlScriptLastExecuted"]; } }
+    /*
+    <add key="SqlScriptFolder"
+         value="~/App_Data/Scripts/Sql/"/>
+    <!--Script Naming Pattern. E.g.: 01.00.00.school.sql-->
+    <add key="SqlScriptNamingPattern"
+         value="\d{1,2}\.\d{1,2}\.\d{1,2}\..*.sql"/>
+    <add key="SqlScriptLastExecuted"
+         value=""/>
+     */
+
     //private Database _DataStore = null;
     //public Database DataStore
     //{
