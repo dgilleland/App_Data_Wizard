@@ -4,19 +4,16 @@
         <h2>
             Database Configuration &amp; Setup</h2>
         <p>
-            The expected connection string name is
-            <asp:Label ID="ConnectionStringName" runat="server" Font-Bold="True" 
-                ForeColor="Blue" Text="OMST_db"></asp:Label>
-            .</p>
+            Select a database connection (Sql Server only):
+            <asp:DropDownList ID="AvailableConnections" runat="server">
+            </asp:DropDownList>
+        </p>
         <p>
-            The actual connection string value is
-            <asp:Label ID="ConnectionStringDetails" runat="server" Font-Bold="True" 
-                Font-Italic="True" Font-Overline="True" Font-Underline="True" 
-                ForeColor="#009933"></asp:Label>
-            .</p>
+            Last run script:
+            <asp:Label ID="LastRunScript" runat="server"></asp:Label>
+        </p>
         <p>
-            The database content was<asp:Label ID="NotAccessible" 
-                runat="server" Font-Italic="True" Text="&amp;nbsp;not" Visible="False"></asp:Label>&nbsp;accessible.&nbsp;</p>
+            &nbsp;</p>
         <p>
             <asp:Label ID="MessageLabel" runat="server" Font-Bold="True" 
         ForeColor="#CC0000"></asp:Label>
@@ -37,6 +34,9 @@
 <asp:Wizard ID="Wizard1" runat="server">
     <WizardSteps>
         <asp:WizardStep runat="server" title="Database Connection">
+            Select a database connection (Sql Server only):
+            <asp:DropDownList ID="AvailableConnections0" runat="server">
+            </asp:DropDownList>
         </asp:WizardStep>
         <asp:WizardStep runat="server" title="Database Objects">
         </asp:WizardStep>
