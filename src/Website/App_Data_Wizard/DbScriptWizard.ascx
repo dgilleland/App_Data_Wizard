@@ -10,15 +10,19 @@
             <asp:Label ID="LastRunScript" runat="server"></asp:Label>
         </p>
             <p>
-                Scripts Available:</p>
+                ScScripts Available:</p>
             <p>
                 <asp:GridView ID="ScriptFileGridView" runat="server">
                 </asp:GridView>
             </p>
         <p>
-            SeSelect a database connection (Sql Server only):
+            Select a database connection (Sql Server only):
             <asp:DropDownList ID="AvailableConnections" runat="server">
             </asp:DropDownList>
+            &nbsp;<asp:LinkButton ID="ChooseDbConnection" runat="server" OnClick="ChooseDbConnection_Click">Choose Database Connection</asp:LinkButton>
+        </p>
+        <p><asp:Label ID="ConnectionStringProper" runat="server" /></p>
+        <p>
             <asp:LinkButton ID="InstallScripts" runat="server" OnClick="InstallScripts_Click">Install Scripts</asp:LinkButton>
             <asp:LinkButton ID="ReInstallScripts" runat="server" OnClick="ReInstallScripts_Click">Re-Install ALL Scripts</asp:LinkButton>
         </p>
@@ -32,8 +36,16 @@
             <p>
                 Scripts Run:</p>
             <p>
-                <asp:GridView ID="ScriptsRunGridview" runat="server" 
+                <asp:GridView ID="ScriptsRunGridview" runat="server" AutoGenerateColumns="false" 
                     onrowdatabound="ScriptsRunGridview_RowDataBound">
+                    <Columns>
+                        <asp:BoundField DataField="FileName" HeaderText="File Name" />
+                        <asp:TemplateField HeaderText="Script Blocks">
+                            <ItemTemplate>
+                                <asp:GridView ID="ScriptBlocks" runat="server" DataSource='<%# Eval("ScriptBlocks") %>'></asp:GridView>
+                            </ItemTemplate>
+                        </asp:TemplateField>
+                    </Columns>
                 </asp:GridView>
             </p>
         </asp:Panel>
