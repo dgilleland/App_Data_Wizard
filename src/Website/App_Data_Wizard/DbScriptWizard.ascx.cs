@@ -44,6 +44,14 @@ public partial class App_Data_Wizard_DbScriptWizard : System.Web.UI.UserControl
             ScriptFileGridView.EmptyDataText = "No SQL files available in " + SqlScriptFolder;
             ScriptFileGridView.DataSource = files; //.OrderBy(each => each.FileName);
             ScriptFileGridView.DataBind();
+
+            //AppSettingsSection appset = WebConfigurationManager.AppSettings. as AppSettingsSection;
+            //if (!appset.IsReadOnly)
+            {
+                WebConfigurationManager.AppSettings.Set("SqlScriptLastExecuted", "01.00.01.eSchool_data.sql");
+                WebConfigurationManager.AppSettings.Set("Bogus", "Added to AppSettings");
+                ConfigurationManager.RefreshSection("appSettings");
+            }
         }
     }
 
@@ -112,7 +120,7 @@ public partial class App_Data_Wizard_DbScriptWizard : System.Web.UI.UserControl
                 rewriter.AppSettings.Settings.Add("SqlScriptLastExecuted", files.Last().FileName); //scripts.Last<string>());
                 rewriter.Save(ConfigurationSaveMode.Modified);
                 ConfigurationManager.RefreshSection("appSettings");
-             */
+             */ 
             ScriptsRunGridview.DataSource = allScripts;
             ScriptsRunGridview.DataBind();
         }
