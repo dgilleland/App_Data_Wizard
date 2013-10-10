@@ -11,8 +11,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "about", "about", "{C6D1F478
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "Website", "src\Website\", "{5AF1CF9F-BBAF-4318-9CDE-D5D6BDB4849A}"
+Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "Website(12)", "http://localhost:17775", "{5AF1CF9F-BBAF-4318-9CDE-D5D6BDB4849A}"
 	ProjectSection(WebsiteProperties) = preProject
+		UseIISExpress = "true"
 		TargetFrameworkMoniker = ".NETFramework,Version%3Dv4.0"
 		Debug.AspNetCompiler.VirtualPath = "/localhost_17765"
 		Debug.AspNetCompiler.PhysicalPath = "src\Website\"
@@ -28,7 +29,7 @@ Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "Website", "src\Website\", "
 		Release.AspNetCompiler.ForceOverwrite = "true"
 		Release.AspNetCompiler.FixedNames = "false"
 		Release.AspNetCompiler.Debug = "False"
-		VWDPort = "17775"
+		SlnRelativePath = "src\Website\"
 		DefaultWebSiteLanguage = "Visual C#"
 	EndProjectSection
 EndProject
