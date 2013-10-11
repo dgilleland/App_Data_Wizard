@@ -12,7 +12,7 @@ using System.Xml;
 
 public partial class App_Data_Wizard_DbScriptWizard : System.Web.UI.UserControl
 {
-    #region Event Hanlders
+    #region Event Handlers
     protected void Page_Load(object sender, EventArgs e)
     {
         if (!IsPostBack)
@@ -22,27 +22,10 @@ public partial class App_Data_Wizard_DbScriptWizard : System.Web.UI.UserControl
             WarningMessage.Visible = (manager == null);
             manager = null;
 
-            InstallScripts.Visible = false;
-            ReInstallScripts.Visible = false;
+            InstallScriptsPanel.Visible = false;
 
-            // Show available connection strings
-            List<string> connections = new List<string>();
-            foreach (ConnectionStringSettings item in ConfigurationManager.ConnectionStrings)
-            {
-                if ("System.Data.SqlClient".Equals(item.ProviderName))
-                    connections.Add(item.Name);
-            }
-            AvailableConnections.DataSource = connections;
-            AvailableConnections.DataBind();
-
+            BindConnectionStringInformation();
             BindScriptInformation();
-            //AppSettingsSection appset = WebConfigurationManager.AppSettings. as AppSettingsSection;
-            //if (!appset.IsReadOnly)
-            {
-                WebConfigurationManager.AppSettings.Set("SqlScriptLastExecuted", "01.00.01.eSchool_data.sql");
-                WebConfigurationManager.AppSettings.Set("Bogus", "Added to AppSettings");
-                ConfigurationManager.RefreshSection("appSettings");
-            }
         }
     }
 
@@ -50,8 +33,18 @@ public partial class App_Data_Wizard_DbScriptWizard : System.Web.UI.UserControl
     {
         ConnectionStringName.Value = AvailableConnections.SelectedValue;
         ConnectionStringProper.Text = DbConnectionSettings.ConnectionString;
-        InstallScripts.Visible = true;
-        ReInstallScripts.Visible = true;
+        string connectionResult;
+        if (CanConnect(out connectionResult))
+        {
+            InstallScriptsPanel.Visible = true;
+            MessageLabel.Text = "";
+        }
+        else
+        {
+            InstallScriptsPanel.Visible = false;
+            MessageLabel.Text = "Unable to connect to the database referenced by '" + ConnectionStringName.Value + "':"
+                              + "<blockquote>" + connectionResult + "</blockquote>";
+        }
     }
 
     protected void InstallScripts_Click(object sender, EventArgs e)
@@ -69,26 +62,38 @@ public partial class App_Data_Wizard_DbScriptWizard : System.Web.UI.UserControl
 
     protected void ScriptBlocks_RowDataBound(object sender, GridViewRowEventArgs e)
     {
-        if (e.Row.RowType == DataControlRowType.DataRow) 
+        if (e.Row.RowType == DataControlRowType.DataRow)
             if (!(e.Row.Cells[0].Controls[0] as CheckBox).Checked)
                 e.Row.BackColor = System.Drawing.Color.LightYellow;
+            else
+                if (HideSuccessfulScriptBlocks.Checked)
+                    e.Row.Visible = false;
     }
     #endregion
 
     #region Private Fields and Properties
-    //public string LocalWebConfig { get { return Path.Combine(Path.GetDirectoryName(this.AppRelativeVirtualPath), "Web.config"); } }
-    public string LocalWebConfig { get { return Path.GetDirectoryName(this.AppRelativeVirtualPath); } }
-    private string SqlScriptLastExecuted { get { return ConfigurationManager.AppSettings["SqlScriptLastExecuted"]; } }
     private const string DefaultScriptFolder = @"~\App_Data\";
-    private string SqlScriptFolder { get { return string.IsNullOrEmpty(ConfigurationManager.AppSettings["SqlScriptFolder"]) ? DefaultScriptFolder : ConfigurationManager.AppSettings["SqlScriptFolder"]; } }
-    private string SqlScriptNamingPattern { get { return ConfigurationManager.AppSettings["SqlScriptNamingPattern"]; } }
-    private Regex FilePattern { get { return new Regex(string.IsNullOrEmpty(SqlScriptNamingPattern) ? @".*.sql" : SqlScriptNamingPattern, RegexOptions.IgnoreCase); } }
-    private List<string> FileNames { get { return Directory.GetFiles(Server.MapPath(SqlScriptFolder)).Where(file => FilePattern.IsMatch(file)).ToList<string>(); } }
+
+    public string LocalWebConfig 
+    { get { return Path.GetDirectoryName(this.AppRelativeVirtualPath); } }
+    private ConnectionStringSettings DbConnectionSettings 
+    { get { return ConfigurationManager.ConnectionStrings[ConnectionStringName.Value]; } }
+    private string SqlScriptLastExecuted 
+    { get { return ConfigurationManager.AppSettings["SqlScriptLastExecuted"]; } }
+    private string SqlScriptFolder 
+    { get { return string.IsNullOrEmpty(ConfigurationManager.AppSettings["SqlScriptFolder"]) ? DefaultScriptFolder : ConfigurationManager.AppSettings["SqlScriptFolder"]; } }
+    private string SqlScriptNamingPattern 
+    { get { return ConfigurationManager.AppSettings["SqlScriptNamingPattern"]; } }
+    private Regex FilePattern 
+    { get { return new Regex(string.IsNullOrEmpty(SqlScriptNamingPattern) ? @".*.sql" : SqlScriptNamingPattern, RegexOptions.IgnoreCase); } }
+    private List<string> FileNames 
+    { get { return Directory.GetFiles(Server.MapPath(SqlScriptFolder)).Where(file => FilePattern.IsMatch(file)).ToList<string>(); } }
 
     // Following line adapted from the DotNetNuke.Data.SqlDataProvider SqlDelimiterRegex property
-    private static Regex SqlDelimiterRegex = new Regex(@"(?<=(?:[^\w]+|^))GO(?=(?: |\t)*?(?:\r?\n|$))", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Multiline);
+    private static Regex SqlDelimiterRegex = 
+        new Regex(@"(?<=(?:[^\w]+|^))GO(?=(?: |\t)*?(?:\r?\n|$))",
+            RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Multiline);
 
-    private ConnectionStringSettings DbConnectionSettings { get { return ConfigurationManager.ConnectionStrings[ConnectionStringName.Value]; } }
     #endregion
 
     #region Protected Methods
@@ -101,6 +106,38 @@ public partial class App_Data_Wizard_DbScriptWizard : System.Web.UI.UserControl
     #endregion
 
     #region Private Methods (general)
+    /// <summary>
+    /// Display a list of Connection Strings detected in the config files.
+    /// </summary>
+    private void BindConnectionStringInformation()
+    {
+        // Show available connection strings
+        List<string> connections = new List<string>();
+        foreach (ConnectionStringSettings item in ConfigurationManager.ConnectionStrings)
+        {
+            if ("System.Data.SqlClient".Equals(item.ProviderName) || "System.Data.SqlServerCe.4.0".Equals(item.ProviderName))
+                connections.Add(item.Name);
+        }
+        // sort, then push LocalSqlServer and DefaultConnection to the bottom of the list
+        connections.Sort();
+        int foundIndex;
+        foundIndex = connections.FindIndex(theItem => "LocalSqlServer".Equals(theItem));
+        if (foundIndex >= 0)
+        {
+            connections.RemoveAt(foundIndex);
+            connections.Add("LocalSqlServer");
+        }
+        foundIndex = connections.FindIndex(theItem => "DefaultConnection".Equals(theItem));
+        if (foundIndex >= 0)
+        {
+            connections.RemoveAt(foundIndex);
+            connections.Add("DefaultConnection");
+        }
+
+        AvailableConnections.DataSource = connections;
+        AvailableConnections.DataBind();
+    }
+
     /// <summary>
     /// Display information about the scripts available and applied.
     /// </summary>
@@ -121,6 +158,26 @@ public partial class App_Data_Wizard_DbScriptWizard : System.Web.UI.UserControl
         ScriptFileGridView.DataSource = files; //.OrderBy(each => each.FileName);
         ScriptFileGridView.DataBind();
     }
+
+    /// <summary>
+    /// Simple test of whether we can connect to & execute scripts against the database
+    /// </summary>
+    /// <param name="exceptionMessage">Details of the exception, or an empty string</param>
+    /// <returns>true if the database is accessible, false if it is not</returns>
+    private bool CanConnect(out string exceptionMessage)
+    {
+        try
+        {
+            ExecuteNonQuery(CommandType.Text, "SELECT 1");
+            exceptionMessage = "";
+            return true;
+        }
+        catch (Exception ex)
+        {
+            exceptionMessage = ex.Message;
+            return false;
+        }
+    }
     #endregion
 
     #region Private Methods (Script Installation)
@@ -132,29 +189,36 @@ public partial class App_Data_Wizard_DbScriptWizard : System.Web.UI.UserControl
     {
         try
         {
-            DatabaseRebuildPanel.Visible = true;
-            List<ScriptFile> allScripts = new List<ScriptFile>();
             if (scripts.Count > 0)
             {
+                DatabaseRebuildPanel.Visible = true;
+                List<ScriptFile> allScripts = new List<ScriptFile>();
                 foreach (string script in scripts)
                     allScripts.Add(new ScriptFile() { FilePath = script, ScriptBlocks = RunInstallationScript(script) });
 
                 SaveAppSetting("SqlScriptLastExecuted", Path.GetFileName(scripts.Last<string>()));
 
                 BindScriptInformation();
+                int errorCount = 0;
+                foreach (ScriptFile script in allScripts)
+                    foreach (var executedBlock in script.ScriptBlocks)
+                        if (!executedBlock.Installed)
+                            errorCount++;
+
+                if (errorCount > 0)
+                    MessageLabel.Text = String.Format("The scripts executed with {0} errors. See the table below for details.", errorCount);
+                else
+                    MessageLabel.Text = "Script installation complete: No errors";
+
+                ScriptsRunGridview.DataSource = allScripts;
+                ScriptsRunGridview.DataBind();
+            }
+            else
+            {
+                DatabaseRebuildPanel.Visible = false;
+                MessageLabel.Text = "No scripts to execute.";
             }
 
-            int errorCount = 0;
-            foreach (ScriptFile script in allScripts)
-                foreach (var executedBlock in script.ScriptBlocks)
-                    if (!executedBlock.Installed)
-                        errorCount++;
-
-            if (errorCount > 0)
-                MessageLabel.Text = String.Format("The scripts executed with {0} errors. See the table below for details.", errorCount);
-
-            ScriptsRunGridview.DataSource = allScripts;
-            ScriptsRunGridview.DataBind();
         }
         catch (Exception ex)
         {
